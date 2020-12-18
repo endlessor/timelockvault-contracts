@@ -1,0 +1,19 @@
+{
+  "name": "timelockvault-contracts",
+  "version": "1.0.0",
+  "description": "Lock up your ETH for a set duration.",
+  "main": "truffle-config.js",
+  "scripts": {
+    "compile": "truffle compile --all",
+    "migrate": "truffle migrate",
+    "test": "truffle test"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "truffle": "^5.1.58"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.3.0"
+  }
+}
