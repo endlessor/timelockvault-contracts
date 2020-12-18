@@ -8,8 +8,8 @@
     "migrate": "truffle migrate",
     "test": "truffle test"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "t11s",
+  "license": "AGPL-3.0-only",
   "devDependencies": {
     "truffle": "^5.1.58"
   },
