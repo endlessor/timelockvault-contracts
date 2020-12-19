@@ -17,7 +17,7 @@ contract MuliSig is Ownable {
         VOTE_TO_ADD_KEYHOLDER,
         /// @dev Vote to increase the limit of keyholders. The associated hash in `attestations` will be the number they are voting to change the keyholder limit to.
         VOTE_TO_CHANGE_KEYHOLDER_LIMIT,
-        /// @dev Remove the owner's ability to add keyholders. Owner must take this action. This action will be auto-taken after they add enough keyholders to reach the `keyholderLimit`. The associated hash in `attestations` will be an empty string.
+        /// @dev Remove the owner's ability to add keyholders. Owner must take this action. This action will be auto-taken after they add enough keyholders to reach the `keyholderLimit`. The associated data in `attestations` will be an empty bytes32.
         LOCK_OWNER_OUT,
         /// @dev Attest to arbitrary hashed data. The associated hash in `attestations` will be an packed version of the data they are attesting to.
         ATTEST_TO_DATA
@@ -174,7 +174,10 @@ contract MuliSig is Ownable {
         return false;
     }
 
-    /// @notice Adds a keyholder if a slot is open. The owner of the contract can add keyholders until they lock themselves out or fill all slots. After the owner is locked out only keyholders can add if a slot is open and they all vote. Will void all attestations voting for this addition if the addition is completed successfully.
+    /// @notice Adds a keyholder if a slot is open.
+    /// @notice The owner of the contract can add keyholders until they lock themselves out or fill all slots.
+    /// @notice After the owner is locked out only keyholders can add if a slot is open and they all vote.
+    /// @notice Will void all attestations voting for this addition if the addition is completed successfully.
     /// @param person The address to add as a keyholder.
     function addKeyholder(address person) external {
         require(
@@ -204,7 +207,8 @@ contract MuliSig is Ownable {
         }
     }
 
-    /// @notice Removes a keyholder if all but one current keyholders vote to remove them. Will void all attestations voting for this removal if the addition is completed successfully.
+    /// @notice Removes a keyholder if all but one current keyholders vote to remove them.
+    /// @notice Will void all attestations voting for this removal if the addition is completed successfully.
     /// @param keyholder The address of the keyholder to remove.
     function removeKeyholder(address keyholder) external {
         require(

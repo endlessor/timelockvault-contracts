@@ -9,7 +9,7 @@ import "./MultiSig.sol";
 /// @notice You can use this contract to lockup your funds for a predetermined amount of time with no way to withdraw.
 /// @dev Use TimeLockupMultiSigVault if you would like to be able to override the timelock with the approval of some trusted friends/addresses.
 contract TimeLockupVault is Ownable {
-    /// @notice Amount of time between a deposit and withdraw in seconds.
+    /// @notice Amount of seconds before a deposit can withdrawn.
     uint256 public timelock;
 
     /// @dev Maps the time in seconds since unix epoch when every deposit was made with the amount of wei that was deposited at that time.
@@ -24,22 +24,28 @@ contract TimeLockupVault is Ownable {
         timelock = _timelock;
     }
 
-    /// @dev Gets the balance in wei for a deposit.
+    /// @notice Get all deposit timestamps (called timeKeys).
+    /// @return An array of all depositTimestamps (they may have already been withdrawn from),.
+    function getTimeKeys() external view returns (uint256[] memory) {
+        return timeKeys;
+    }
+
+    /// @notice Gets the balance in wei for a deposit.
     /// @param timeKey The timestamp of the deposit.
     /// @return Amount in wei deposited at this timestamp. Can be 0.
     function getBalanceForTimeKey(uint256 timeKey)
-        internal
+        public
         view
         returns (uint256)
     {
         return deposits[timeKey];
     }
 
-    /// @dev Gets the amount of seconds left on a deposit.
+    /// @notice Gets the amount of seconds left on a deposit.
     /// @param timeKey The timestamp of the deposit.
     /// @return The seconds left on the timestamp at this deposit. Will stop at 0.
     function getSecondsLeftOnTimeKey(uint256 timeKey)
-        internal
+        public
         view
         returns (uint256)
     {
@@ -78,30 +84,32 @@ contract TimeLockupVault is Ownable {
         return amount;
     }
 
-    /// @dev Sends the amount of eth deposited at a timestamp to the sender.
-    /// @param timeKey The timestamp of the deposit.
-    function _withdrawMaxFromTimeKey(uint256 timeKey) internal {
-        delete deposits[timeKey];
-        msg.sender.transfer(getBalanceForTimeKey(timeKey));
-    }
-
-    /// @dev Sends all eth in the contract to the sender and empties all the timeKeys (deposits mapped to amounts).
-    /// @param validateSeconds If true the function will check that the timelock has expired on the deposit, if false it will ignore the timelock and send the eth anyway.
-    function _withdrawMax(bool validateSeconds) internal {
+    /// @dev It will withdraw the max amount possible based on `ignoreTimelock`. It will empty the timeKeys it withdraws from (delete each timestamp from the `deposits` map).
+    /// @param ignoreTimelock If true the function will withdraw all wei in the contract. If false it will withdraw from all deposits that have expired timelocks.
+    function _withdrawMax(bool ignoreTimelock) internal {
+        uint256 amountWithdrawn = 0;
         for (uint256 i = 0; i < timeKeys.length; i++) {
             uint256 timeKey = timeKeys[i];
+            uint256 timeKeyBalance = getBalanceForTimeKey(timeKey);
+
             if (
-                getBalanceForTimeKey(timeKey) > 0 &&
-                (validateSeconds ? getSecondsLeftOnTimeKey(timeKey) == 0 : true)
+                // If the timeKey has any wei left in it:
+                timeKeyBalance > 0 &&
+                // If we are not ignoring the timelock check the timelock has expired:
+                (ignoreTimelock ? true : getSecondsLeftOnTimeKey(timeKey) == 0)
             ) {
-                _withdrawMaxFromTimeKey(timeKey);
+                // Empty the deposit and increase the amountWithdrawn because we will transfer everything at once at the end.
+                amountWithdrawn += timeKeyBalance;
+                delete deposits[timeKey];
             }
         }
+
+        msg.sender.transfer(amountWithdrawn);
     }
 
     /// @notice Withdraws the max amount of withdrawable eth (deposits that have expired timelocks) from the contract.
     function withdraw() external onlyOwner {
-        _withdrawMax({validateSeconds: true});
+        _withdrawMax({ignoreTimelock: false});
     }
 
     receive() external payable {

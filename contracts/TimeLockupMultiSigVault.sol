@@ -16,51 +16,8 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MuliSig {
         TimeLockupVault(_timelock)
     {}
 
-    /// @dev Withdraws a specific amount from a timekey. Will withdraw more than its balance.
-    /// @param amount The amount of wei to withdraw from the timeKey.
-    /// @param timeKey The timestamp of the deposit.
-    function _withdrawAmountFromTimeKey(uint256 amount, uint256 timeKey)
-        internal
-    {
-        uint256 timeKeyBalance = getBalanceForTimeKey(timeKey);
-        require(
-            amount <= timeKeyBalance,
-            "This timeKey does not have enough deposited to withdraw this amount."
-        );
-        deposits[timeKey] = timeKeyBalance - amount;
-        msg.sender.transfer(amount);
-    }
-
-    /// @dev Withdraws a specific amount by looping through each timeKey and withdrawing from each until the `amount` has been withdrawn. Will revert if there is not enough deposited to withdraw.
-    /// @param amount The amount of wei to withdraw.
-    /// @param validateSeconds If true the function will check that the timelock has expired on each deposit, if false it will ignore the timelock and withdraw anyway.
-    function _withdrawAmount(uint256 amount, bool validateSeconds) internal {
-        uint256 amountWithdrawn = 0;
-        for (uint256 i = 0; i < timeKeys.length; i++) {
-            uint256 timeKey = timeKeys[i];
-            uint256 timeKeyBalance = getBalanceForTimeKey(timeKey);
-            uint256 remainingToBeWithdrawn = amount - amountWithdrawn;
-            if (
-                timeKeyBalance > 0 &&
-                (validateSeconds ? getSecondsLeftOnTimeKey(timeKey) == 0 : true)
-            ) {
-                if (remainingToBeWithdrawn > timeKeyBalance) {
-                    _withdrawMaxFromTimeKey(timeKey);
-                    amountWithdrawn += timeKeyBalance;
-                } else {
-                    _withdrawAmountFromTimeKey(remainingToBeWithdrawn, amount);
-                    amountWithdrawn += remainingToBeWithdrawn;
-                }
-            }
-        }
-
-        require(
-            amountWithdrawn == amount,
-            "There was not enough deposited to withdraw this amount."
-        );
-    }
-
-    /// @notice Withdraws all the eth in the contract ignoring the timelock of each deposit. All keyholders must attest to the string "bypass all withdraw timelocks" first.
+    /// @notice Withdraws all the eth in the contract ignoring the timelock of each deposit.
+    /// @notice All keyholders must attest to the string "bypass all withdraw timelocks" first.
     function withdrawMaxWithTimelockBypass() external onlyOwner {
         require(
             allKeyholdersAttest(
@@ -70,10 +27,12 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MuliSig {
             "All keyholders must attest first."
         );
 
-        _withdrawMax({validateSeconds: false});
+        _withdrawMax({ignoreTimelock: true});
     }
 
-    /// @notice Withdraws a specific amount from the contract ignroing the timelock of each deposit it withdraws from. All keyholders must attest to the string "bypass withdraw timelock for amount: `amount`" first.
+    /// @notice Withdraws a specific amount from the contract ignroing the timelock of each deposit it withdraws from.
+    /// @notice If a deposit is left partially withdrawn the same timelock will still apply to the remaining wei; it will not reset the countdown.
+    /// @notice All keyholders must attest to the string "bypass withdraw timelock for amount: `amount`" first.
     /// @param amount The amount in wei to withdraw from the contract.
     function withdrawAmountWithTimelockBypass(uint256 amount)
         external
@@ -92,6 +51,32 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MuliSig {
             "All keyholders must attest first."
         );
 
-        _withdrawAmount({amount: amount, validateSeconds: false});
+        uint256 amountWithdrawn = 0;
+        for (uint256 i = 0; i < timeKeys.length; i++) {
+            uint256 timeKey = timeKeys[i];
+            uint256 timeKeyBalance = getBalanceForTimeKey(timeKey);
+            uint256 remainingToBeWithdrawn = amount - amountWithdrawn;
+            // If the timeKey is not empty:
+            if (timeKeyBalance > 0) {
+                // If we can withdraw the max amount from this timeKey without withdrawing too much:
+                if (remainingToBeWithdrawn > timeKeyBalance) {
+                    deposits[timeKey] = 0;
+                    amountWithdrawn += timeKeyBalance;
+                } else {
+                    // If withdrawing the max from this timeKey will withdraw too much, withdraw only the amount we need.
+                    deposits[timeKey] = timeKeyBalance - amount;
+                    amountWithdrawn += remainingToBeWithdrawn;
+
+                    break;
+                }
+            }
+        }
+
+        require(
+            amountWithdrawn == amount,
+            "There was not enough deposited to withdraw this amount."
+        );
+
+        msg.sender.transfer(amount);
     }
 }
