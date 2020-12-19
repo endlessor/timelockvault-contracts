@@ -156,6 +156,12 @@ contract MuliSig is Ownable {
         _voidAttestationsFromHash(code, packAndHash(user));
     }
 
+    /// @notice Gets all keyholders. May be lower than the limit but cannot be higher.
+    /// @return An array of the addresses of all keyholders.
+    function getKeyholders() public view returns (address[] memory) {
+        return keyholders;
+    }
+
     /// @notice Checks if an address is a keyholder.
     /// @return If an address is a keyholder.
     function isKeyholder(address user) public view returns (bool) {
@@ -166,12 +172,6 @@ contract MuliSig is Ownable {
         }
 
         return false;
-    }
-
-    /// @notice Gets all keyholders. May be lower than the limit but cannot be higher.
-    /// @return An array of the addresses of all keyholders.
-    function getKeyholders() public view returns (address[] memory) {
-        return keyholders;
     }
 
     /// @notice Adds a keyholder if a slot is open. The owner of the contract can add keyholders until they lock themselves out or fill all slots. After the owner is locked out only keyholders can add if a slot is open and they all vote. Will void all attestations voting for this addition if the addition is completed successfully.
