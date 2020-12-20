@@ -373,3 +373,4 @@ testeth
 node_modules
 bin_output
 logs
+contracts/artifacts
