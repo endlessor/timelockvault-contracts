@@ -3,7 +3,7 @@ pragma solidity 0.7.6;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MuliSig is Ownable {
+contract MultiSig is Ownable {
     /// @notice The limit of keyholders the multsig can have. Can be expanded with a vote of all active keyholders.
     uint256 public keyholderLimit;
     /// @dev An array of the addresses of all current keyholders.
@@ -140,6 +140,18 @@ contract MuliSig is Ownable {
         return _allButOneKeyholdersAttestToHash(code, packAndHash(user));
     }
 
+    /// @notice Checks that all but one keyholders attested to an entry with the `code` and `user`.
+    /// @param code The ActionCode of the entry to look for.
+    /// @param data The data in the entry to look for.
+    /// @return If all but one keyholders have attested to an entry with the `code` and `user`.
+    function allButOneKeyholdersAttest(ActionCode code, string calldata data)
+        public
+        view
+        returns (bool)
+    {
+        return _allButOneKeyholdersAttestToHash(code, packAndHash(data));
+    }
+
     /// @dev Removes an attestation/action from the map.
     /// @param code The action code of the entry to void.
     /// @param hash The data of the entry to void.
@@ -154,6 +166,13 @@ contract MuliSig is Ownable {
     /// @param user The data of the entry to void.
     function voidAttestations(ActionCode code, address user) internal {
         _voidAttestationsFromHash(code, packAndHash(user));
+    }
+
+    /// @dev Removes a string attestation/action from the map.
+    /// @param code The action code of the entry to void.
+    /// @param data data of the entry to void.
+    function voidAttestations(ActionCode code, string memory data) public {
+        _voidAttestationsFromHash(code, packAndHash(data));
     }
 
     /// @notice Gets all keyholders. May be lower than the limit but cannot be higher.
@@ -271,7 +290,7 @@ contract MuliSig is Ownable {
 
     /// @notice Adds an attestation log associated with the sender's address with the `data` and action code ATTEST_TO_DATA.
     /// @param data The string to be hashed and stored.
-    function attestToData(string calldata data) external onlyKeyholder {
+    function attestToData(string memory data) public onlyKeyholder {
         attestations[msg.sender][ActionCode.ATTEST_TO_DATA][
             packAndHash(data)
         ] = true;

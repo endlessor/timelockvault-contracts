@@ -375,3 +375,7 @@ bin_output
 logs
 
 contracts/artifacts
+coverage
+coverage.json
+.coverage_artifacts
+.coverage_contracts

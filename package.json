@@ -6,11 +6,21 @@
   "scripts": {
     "compile": "truffle compile --all",
     "migrate": "truffle migrate",
-    "test": "truffle test"
+    "test": "truffle test",
+    "ganache": "ganache-cli",
+    "dry-run": "concurrently 'npm:ganache > /dev/null' 'npm:test' --kill-others --success first",
+    "coverage": "truffle run coverage --network development && npm run open-coverage-report",
+    "open-coverage-report": "if [ $(uname) == 'Darwin' ]; then open ./coverage/index.html; fi"
   },
   "author": "t11s",
   "license": "AGPL-3.0-only",
   "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "concurrently": "^5.3.0",
+    "ganache-cli": "^6.12.1",
+    "ganache-time-traveler": "^1.0.15",
+    "solidity-coverage": "^0.7.13",
     "truffle": "^5.1.58"
   },
   "dependencies": {
