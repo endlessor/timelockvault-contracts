@@ -10,7 +10,7 @@
     "ganache": "ganache-cli",
     "dry-run": "concurrently 'npm:ganache > /dev/null' 'npm:test' --kill-others --success first",
     "coverage": "truffle run coverage && npm run open-coverage-report",
-    "open-coverage-report": "if [ $(uname) == 'Darwin' ]; then open ./coverage/index.html; fi"
+    "open-coverage-report": "if [ $(uname) = 'Darwin' ]; then open ./coverage/index.html; fi"
   },
   "author": "t11s",
   "license": "AGPL-3.0-only",
