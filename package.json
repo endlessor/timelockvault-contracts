@@ -7,6 +7,7 @@
     "compile": "truffle compile --all",
     "migrate": "truffle migrate",
     "test": "truffle test",
+    "test-verbose": "npm run test -- --show-events",
     "ganache": "ganache-cli",
     "dry-run": "concurrently 'npm:ganache > /dev/null' 'npm:test' --kill-others --success first",
     "coverage": "truffle run coverage && npm run open-coverage-report",
