@@ -1,5 +1,6 @@
 const TimeLockupMultiSigVault = artifacts.require("TimeLockupMultiSigVault");
 const timeMachine = require("ganache-time-traveler");
+const { TEST_TIMELOCK_SECONDS } = require("../utils");
 
 contract("TimeLockupMultiSigVault", (accounts) => {
   const [owner, keyholder1, keyholder2, keyholder3] = accounts;
@@ -40,7 +41,7 @@ contract("TimeLockupMultiSigVault", (accounts) => {
   it("enforces the timelock", async () => {
     const timeLockupMultiSigVault = await TimeLockupMultiSigVault.deployed();
 
-    const halfOfTimelock = parseInt(process.env.TIMELOCK_SECONDS) / 2;
+    const halfOfTimelock = parseInt(TEST_TIMELOCK_SECONDS) / 2;
 
     // Advance the time so we're half way done with the timelock
     await timeMachine.advanceTimeAndBlock(halfOfTimelock);
@@ -53,7 +54,7 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     // Check the amount of seconds left is equal to half of the timelock.
     await timeLockupMultiSigVault
       .getSecondsLeftOnTimeKey(firstDepositTimeKey)
-      .should.eventually.bnEqual(halfOfTimelock.toString());
+      .should.eventually.bnEqual(halfOfTimelock);
 
     // Check the withdrawable amount is 0
     await timeLockupMultiSigVault
@@ -65,9 +66,7 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     const timeLockupMultiSigVault = await TimeLockupMultiSigVault.deployed();
 
     // Advance the time by the timelock so we should be 1.5x over (as we already advanced by 0.5x in the last test)
-    await timeMachine.advanceTimeAndBlock(
-      parseInt(process.env.TIMELOCK_SECONDS)
-    );
+    await timeMachine.advanceTimeAndBlock(parseInt(TEST_TIMELOCK_SECONDS));
 
     // Check the withdrawable amount is the depositAmount
     await timeLockupMultiSigVault

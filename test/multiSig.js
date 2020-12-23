@@ -7,10 +7,13 @@ chai.should();
 
 const MultiSig = artifacts.require("MultiSig");
 
-const VOTE_TO_REMOVE_KEYHOLDER_ACTION_CODE = 0;
-const VOTE_TO_ADD_KEYHOLDER_ACTION_CODE = 1;
-const VOTE_TO_CHANGE_KEYHOLDER_LIMIT_ACTION_CODE = 2;
-const ATTEST_TO_DATA_ACTION_CODE = 4;
+const {
+  VOTE_TO_REMOVE_KEYHOLDER_ACTION_CODE,
+  VOTE_TO_ADD_KEYHOLDER_ACTION_CODE,
+  VOTE_TO_CHANGE_KEYHOLDER_LIMIT_ACTION_CODE,
+  ATTEST_TO_DATA_ACTION_CODE,
+  TEST_KEYHOLDER_LIMIT,
+} = require("../utils");
 
 contract("MultiSig", (accounts) => {
   let [
@@ -79,9 +82,7 @@ contract("MultiSig", (accounts) => {
   it("should allow increasing the keyholder limit", async () => {
     const multiSig = await MultiSig.deployed();
 
-    multiSig
-      .keyholderLimit()
-      .should.eventually.bnEqual(process.env.KEYHOLDER_AMOUNT);
+    multiSig.keyholderLimit().should.eventually.bnEqual(TEST_KEYHOLDER_LIMIT);
 
     await multiSig.voteToChangeKeyholderLimit(4, { from: keyholder1 });
     await multiSig.voteToChangeKeyholderLimit(4, { from: keyholder2 });
