@@ -19,10 +19,10 @@ contract TimeLockupVault is Ownable {
     uint256[] internal timeKeys;
 
     /// @notice Emitted when ETH is sent to the contract.
-    event Deposit(uint256 timeKey, uint256 amount);
+    event Deposit(uint256 indexed timeKey, uint256 indexed amount);
 
     /// @notice Emitted when any ETH is transfered out of the contract to the owner.
-    event Withdraw(uint256 amount);
+    event Withdraw(uint256 indexed amount);
 
     /// @notice Constructor that sets the timelock for all deposits.
     /// @param _timelock The amount of seconds that a deposit should be locked up before it can be withdrawn.
@@ -92,7 +92,7 @@ contract TimeLockupVault is Ownable {
 
     /// @dev It will withdraw the max amount possible based on `ignoreTimelock`. It will empty the timeKeys it withdraws from (delete each timestamp from the `deposits` map).
     /// @param ignoreTimelock If true the function will withdraw all wei in the contract. If false it will withdraw from all deposits that have expired timelocks.
-    function _withdrawMax(bool ignoreTimelock) internal {
+    function _withdrawMax(bool ignoreTimelock) internal returns (uint256) {
         uint256 amountWithdrawn = 0;
         for (uint256 i = 0; i < timeKeys.length; i++) {
             uint256 timeKey = timeKeys[i];
@@ -112,6 +112,8 @@ contract TimeLockupVault is Ownable {
 
         emit Withdraw(amountWithdrawn);
         msg.sender.transfer(amountWithdrawn);
+
+        return amountWithdrawn;
     }
 
     /// @notice Withdraws the max amount of withdrawable eth (deposits that have expired timelocks) from the contract.

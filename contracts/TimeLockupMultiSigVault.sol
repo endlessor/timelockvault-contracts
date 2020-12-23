@@ -16,6 +16,9 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MultiSig {
         TimeLockupVault(_timelock)
     {}
 
+    /// @notice Emitted when `withdrawMaxWithTimelockBypass` or `withdrawAmountWithTimelockBypass` is called and completes successfully.
+    event BypassWithdraw(uint256 indexed amount);
+
     /// @dev Generates the required attestation string to bypass the timelock for `amount`.
     function requiredAttestationForAmountBypass(uint256 amount)
         internal
@@ -55,8 +58,8 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MultiSig {
         );
 
         voidAttestations(ActionCode.ATTEST_TO_DATA, requiredAttestation);
-
-        _withdrawMax({ignoreTimelock: true});
+        uint256 amountWithdrawn = _withdrawMax({ignoreTimelock: true});
+        emit BypassWithdraw(amountWithdrawn);
     }
 
     /// @notice Withdraws a specific amount from the contract ignroing the timelock of each deposit it withdraws from.
@@ -110,7 +113,8 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MultiSig {
 
         voidAttestations(ActionCode.ATTEST_TO_DATA, requiredAttestation);
         emit Withdraw(amountWithdrawn);
-        msg.sender.transfer(amount);
+        emit BypassWithdraw(amountWithdrawn);
+        msg.sender.transfer(amountWithdrawn);
     }
 
     /// @notice If all keyholders call this function with `amount` it will allow the owner of the vault to `amount` wei from the contract without the timelock applying.

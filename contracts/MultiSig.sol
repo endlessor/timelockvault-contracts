@@ -30,22 +30,22 @@ contract MultiSig is Ownable {
     /// @notice Emitted when any of the add attestation/voting functions is called.
     event AttestationAdded(
         address indexed from,
-        ActionCode actionCode,
-        bytes32 hash
+        ActionCode indexed actionCode,
+        bytes32 indexed hash
     );
 
     /// @notice Emitted when any of the revoke attestation/voting functions is called.
     event AttestationRevoked(
         address indexed from,
-        ActionCode actionCode,
-        bytes32 hash
+        ActionCode indexed actionCode,
+        bytes32 indexed hash
     );
 
     /// @notice Emitted when the `addKeyholder` function is called and completes successfully.
-    event KeyholderAdded(address newKeyholder);
+    event KeyholderAdded(address indexed newKeyholder);
 
     /// @notice Emitted when the `removeKeyholder` function is called and completes successfully.
-    event KeyholderRemoved(address keyholderRemoved);
+    event KeyholderRemoved(address indexed keyholderRemoved);
 
     /// @notice Emitted when the `changeKeyholderLimit` function is called and completes successfully.
     event KeyholderLimitChanged(uint256 keyholderLimit);
