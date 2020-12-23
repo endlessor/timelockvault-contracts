@@ -49,10 +49,10 @@ contract TimeLockupVault is Ownable {
         view
         returns (uint256)
     {
-        require(
-            getBalanceForTimeKey(timeKey) > 0,
-            "This timeKey does not have a deposit associated with it!"
-        );
+        // The time doesn't matter on an empty timeKey
+        if (getBalanceForTimeKey(timeKey) == 0) {
+            return 0;
+        }
 
         uint256 timePassed = block.timestamp - timeKey;
 

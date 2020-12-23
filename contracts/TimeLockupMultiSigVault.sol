@@ -79,19 +79,23 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MultiSig {
         );
 
         uint256 amountWithdrawn = 0;
+
         for (uint256 i = 0; i < timeKeys.length; i++) {
             uint256 timeKey = timeKeys[i];
             uint256 timeKeyBalance = getBalanceForTimeKey(timeKey);
-            uint256 remainingToBeWithdrawn = amount - amountWithdrawn;
+
             // If the timeKey is not empty:
             if (timeKeyBalance > 0) {
+                uint256 remainingToBeWithdrawn = amount - amountWithdrawn;
+
                 // If we can withdraw the max amount from this timeKey without withdrawing too much:
                 if (remainingToBeWithdrawn > timeKeyBalance) {
                     deposits[timeKey] = 0;
                     amountWithdrawn += timeKeyBalance;
                 } else {
                     // If withdrawing the max from this timeKey will withdraw too much, withdraw only the amount we need.
-                    deposits[timeKey] = timeKeyBalance - amount;
+                    // The else case will also be run if remainingToBeWithdrawn == timeKeyBalance so it will break right after (for gas efficiency).
+                    deposits[timeKey] -= remainingToBeWithdrawn;
                     amountWithdrawn += remainingToBeWithdrawn;
 
                     break;

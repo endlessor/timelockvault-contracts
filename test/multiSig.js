@@ -108,7 +108,7 @@ contract("MultiSig", (accounts) => {
     multiSig.getKeyholders().should.eventually.have.lengthOf(4);
     multiSig
       .getKeyholders()
-      .should.eventually.to.include.members([
+      .should.eventually.include.members([
         keyholder1,
         keyholder2,
         keyholderToBeAdded1,
