@@ -109,7 +109,7 @@ contract TimeLockupMultiSigVault is TimeLockupVault, MultiSig {
         );
 
         voidAttestations(ActionCode.ATTEST_TO_DATA, requiredAttestation);
-
+        emit Withdraw(amountWithdrawn);
         msg.sender.transfer(amount);
     }
 

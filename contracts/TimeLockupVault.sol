@@ -18,6 +18,12 @@ contract TimeLockupVault is Ownable {
     /// @dev Array of all timestamps that were or still are mapped to amounts in the `deposits` map.
     uint256[] internal timeKeys;
 
+    /// @notice Emitted when ETH is sent to the contract.
+    event Deposit(uint256 timeKey, uint256 amount);
+
+    /// @notice Emitted when any ETH is transfered out of the contract to the owner.
+    event Withdraw(uint256 amount);
+
     /// @notice Constructor that sets the timelock for all deposits.
     /// @param _timelock The amount of seconds that a deposit should be locked up before it can be withdrawn.
     constructor(uint256 _timelock) {
@@ -104,6 +110,7 @@ contract TimeLockupVault is Ownable {
             }
         }
 
+        emit Withdraw(amountWithdrawn);
         msg.sender.transfer(amountWithdrawn);
     }
 
@@ -113,7 +120,11 @@ contract TimeLockupVault is Ownable {
     }
 
     receive() external payable {
-        timeKeys.push(block.timestamp);
-        deposits[block.timestamp] = msg.value;
+        uint256 timeKey = block.timestamp;
+        uint256 amount = msg.value;
+
+        timeKeys.push(timeKey);
+        deposits[timeKey] = amount;
+        emit Deposit(timeKey, amount);
     }
 }

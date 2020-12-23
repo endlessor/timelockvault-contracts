@@ -27,6 +27,29 @@ contract MultiSig is Ownable {
     mapping(address => mapping(ActionCode => mapping(bytes32 => bool)))
         internal attestations;
 
+    /// @notice Emitted when any of the add attestation/voting functions is called.
+    event AttestationAdded(
+        address indexed from,
+        ActionCode actionCode,
+        bytes32 hash
+    );
+
+    /// @notice Emitted when any of the revoke attestation/voting functions is called.
+    event AttestationRevoked(
+        address indexed from,
+        ActionCode actionCode,
+        bytes32 hash
+    );
+
+    /// @notice Emitted when the `addKeyholder` function is called and completes successfully.
+    event KeyholderAdded(address newKeyholder);
+
+    /// @notice Emitted when the `removeKeyholder` function is called and completes successfully.
+    event KeyholderRemoved(address keyholderRemoved);
+
+    /// @notice Emitted when the `changeKeyholderLimit` function is called and completes successfully.
+    event KeyholderLimitChanged(uint256 keyholderLimit);
+
     /// @notice Constructor that sets the keyholder limit.
     /// @param _keyholderLimit Max amount of keyholders the multisig can have (can be changd by keyholders).
     constructor(uint256 _keyholderLimit) {
@@ -157,7 +180,7 @@ contract MultiSig is Ownable {
     /// @param hash The data of the entry to void.
     function _voidAttestationsFromHash(ActionCode code, bytes32 hash) internal {
         for (uint256 i = 0; i < keyholders.length; i++) {
-            attestations[keyholders[i]][code][hash] = false;
+            delete attestations[keyholders[i]][code][hash];
         }
     }
 
@@ -214,12 +237,14 @@ contract MultiSig is Ownable {
 
             keyholders.push(person);
             voidAttestations(ActionCode.VOTE_TO_ADD_KEYHOLDER, person);
+            emit KeyholderAdded(person);
         } else {
             require(
                 msg.sender == owner(),
                 "You must be the owner of the contract to add keyholders before the owner is locked out."
             );
             keyholders.push(person);
+            emit KeyholderAdded(person);
 
             // If all keyholder slots have been filled: lock the owner out.
             if (keyholders.length == keyholderLimit) {
@@ -263,6 +288,7 @@ contract MultiSig is Ownable {
         keyholders = newKeyholders;
 
         voidAttestations(ActionCode.VOTE_TO_REMOVE_KEYHOLDER, keyholder);
+        emit KeyholderRemoved(keyholder);
     }
 
     /// @notice Changes the limit of keyholders if all keyholders vote to change it. Cannot set the limit lower than the amount of current keyholders.
@@ -280,6 +306,7 @@ contract MultiSig is Ownable {
         );
 
         keyholderLimit = newLimit;
+        emit KeyholderLimitChanged(newLimit);
     }
 
     /// @dev Requires that the function caller is a keyholder.
@@ -294,33 +321,41 @@ contract MultiSig is Ownable {
     /// @notice Adds an attestation log associated with the sender's address with the `data` and action code ATTEST_TO_DATA.
     /// @param data The string to be hashed and stored.
     function attestToData(string memory data) public onlyKeyholder {
-        attestations[msg.sender][ActionCode.ATTEST_TO_DATA][
-            packAndHash(data)
-        ] = true;
+        ActionCode actionCode = ActionCode.ATTEST_TO_DATA;
+        bytes32 hash = packAndHash(data);
+
+        attestations[msg.sender][actionCode][hash] = true;
+        emit AttestationAdded(msg.sender, actionCode, hash);
     }
 
     /// @notice Adds an attestation log associated with the sender's address with the `keyholder` and action code VOTE_TO_REMOVE_KEYHOLDER.
     /// @param keyholder The address the caller is voting to remove as a keyholder.
     function voteToRemoveKeyholder(address keyholder) external onlyKeyholder {
-        attestations[msg.sender][ActionCode.VOTE_TO_REMOVE_KEYHOLDER][
-            packAndHash(keyholder)
-        ] = true;
+        ActionCode actionCode = ActionCode.VOTE_TO_REMOVE_KEYHOLDER;
+        bytes32 hash = packAndHash(keyholder);
+
+        attestations[msg.sender][actionCode][hash] = true;
+        emit AttestationAdded(msg.sender, actionCode, hash);
     }
 
     /// @notice Adds an attestation log associated with the sender's address with the `person` and action code VOTE_TO_ADD_KEYHOLDER.
     /// @param person The address the caller is voting to add as a keyholder.
     function voteToAddKeyholder(address person) external onlyKeyholder {
-        attestations[msg.sender][ActionCode.VOTE_TO_ADD_KEYHOLDER][
-            packAndHash(person)
-        ] = true;
+        ActionCode actionCode = ActionCode.VOTE_TO_ADD_KEYHOLDER;
+        bytes32 hash = packAndHash(person);
+
+        attestations[msg.sender][actionCode][hash] = true;
+        emit AttestationAdded(msg.sender, actionCode, hash);
     }
 
     /// @notice Adds an attestation log associated with the sender's address with the `limit` and action code VOTE_TO_CHANGE_KEYHOLDER_LIMIT.
     /// @param limit The amount the caller is voting to change the limit to.
     function voteToChangeKeyholderLimit(uint256 limit) external onlyKeyholder {
-        attestations[msg.sender][ActionCode.VOTE_TO_CHANGE_KEYHOLDER_LIMIT][
-            packAndHash(limit)
-        ] = true;
+        ActionCode actionCode = ActionCode.VOTE_TO_CHANGE_KEYHOLDER_LIMIT;
+        bytes32 hash = packAndHash(limit);
+
+        attestations[msg.sender][actionCode][hash] = true;
+        emit AttestationAdded(msg.sender, actionCode, hash);
     }
 
     /// @notice Retracts an attestation log associated with the sender's address with the `data` and action code ATTEST_TO_DATA.
@@ -329,9 +364,11 @@ contract MultiSig is Ownable {
         external
         onlyKeyholder
     {
-        delete attestations[msg.sender][ActionCode.ATTEST_TO_DATA][
-            packAndHash(data)
-        ];
+        ActionCode actionCode = ActionCode.ATTEST_TO_DATA;
+        bytes32 hash = packAndHash(data);
+
+        delete attestations[msg.sender][actionCode][hash];
+        emit AttestationRevoked(msg.sender, actionCode, hash);
     }
 
     /// @notice Retracts an attestation log associated with the sender's address with the `keyholder` and action code VOTE_TO_REMOVE_KEYHOLDER.
@@ -340,17 +377,21 @@ contract MultiSig is Ownable {
         external
         onlyKeyholder
     {
-        delete attestations[msg.sender][ActionCode.VOTE_TO_REMOVE_KEYHOLDER][
-            packAndHash(keyholder)
-        ];
+        ActionCode actionCode = ActionCode.VOTE_TO_REMOVE_KEYHOLDER;
+        bytes32 hash = packAndHash(keyholder);
+
+        delete attestations[msg.sender][actionCode][hash];
+        emit AttestationRevoked(msg.sender, actionCode, hash);
     }
 
     /// @notice Retracts an attestation log associated with the sender's address with the `keyholder` and action code VOTE_TO_ADD_KEYHOLDER.
     /// @param person The address the person calling was voting to add as a keyholder and wants retracted.
     function retractVoteToAddKeyholder(address person) external onlyKeyholder {
-        delete attestations[msg.sender][ActionCode.VOTE_TO_ADD_KEYHOLDER][
-            packAndHash(person)
-        ];
+        ActionCode actionCode = ActionCode.VOTE_TO_ADD_KEYHOLDER;
+        bytes32 hash = packAndHash(person);
+
+        delete attestations[msg.sender][actionCode][hash];
+        emit AttestationRevoked(msg.sender, actionCode, hash);
     }
 
     /// @notice Retracts an attestation log associated with the sender's address with the `limit` and action code VOTE_TO_CHANGE_KEYHOLDER_LIMIT.
@@ -359,8 +400,10 @@ contract MultiSig is Ownable {
         external
         onlyKeyholder
     {
-        delete attestations[msg.sender][
-            ActionCode.VOTE_TO_CHANGE_KEYHOLDER_LIMIT
-        ][packAndHash(limit)];
+        ActionCode actionCode = ActionCode.VOTE_TO_CHANGE_KEYHOLDER_LIMIT;
+        bytes32 hash = packAndHash(limit);
+
+        delete attestations[msg.sender][actionCode][hash];
+        emit AttestationRevoked(msg.sender, actionCode, hash);
     }
 }
