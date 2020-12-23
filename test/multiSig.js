@@ -75,7 +75,9 @@ contract("MultiSig", (accounts) => {
     const multiSig = await MultiSig.deployed();
 
     // Returns a BN so we must convert to string first.
-    (await multiSig.keyholderLimit()).toString().should.equal("3");
+    (await multiSig.keyholderLimit())
+      .toString()
+      .should.equal(process.env.KEYHOLDER_AMOUNT);
 
     await multiSig.voteToChangeKeyholderLimit(4, { from: keyholder1 });
     await multiSig.voteToChangeKeyholderLimit(4, { from: keyholder2 });

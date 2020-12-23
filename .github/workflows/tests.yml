@@ -13,7 +13,7 @@ jobs:
         run: npm install
 
       - name: Run unit tests with coverage
-        run: npm run coverage
+        run: npm run dry-run
 
       - name: Upload coverage report to Coveralls
         uses: coverallsapp/github-action@master
