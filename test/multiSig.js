@@ -88,6 +88,7 @@ contract("MultiSig", (accounts) => {
     // Returns a BN so we must convert to string first.
     (await multiSig.keyholderLimit()).toString().should.equal("4");
   });
+
   it("should allow adding keyholders after the limit has increased", async () => {
     const multiSig = await MultiSig.deployed();
 
