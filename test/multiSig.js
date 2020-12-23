@@ -32,7 +32,7 @@ contract("MultiSig", (accounts) => {
   it("should allow removing keyholders", async () => {
     const multiSig = await MultiSig.deployed();
 
-    multiSig.isKeyholder(keyholderToBeRemoved).should.become(true);
+    await multiSig.isKeyholder(keyholderToBeRemoved).should.become(true);
 
     await multiSig.voteToRemoveKeyholder(keyholderToBeRemoved, {
       from: keyholder1,
@@ -43,7 +43,7 @@ contract("MultiSig", (accounts) => {
 
     await multiSig.removeKeyholder(keyholderToBeRemoved);
 
-    multiSig.isKeyholder(keyholderToBeRemoved).should.become(false);
+    await multiSig.isKeyholder(keyholderToBeRemoved).should.become(false);
   });
 
   it("should enforce the keyholder lockout", async () => {
@@ -57,7 +57,7 @@ contract("MultiSig", (accounts) => {
   it("should allow adding keyholders", async () => {
     const multiSig = await MultiSig.deployed();
 
-    multiSig.isKeyholder(keyholderToBeAdded1).should.become(false);
+    await multiSig.isKeyholder(keyholderToBeAdded1).should.become(false);
 
     await multiSig.voteToAddKeyholder(keyholderToBeAdded1, {
       from: keyholder1,
@@ -68,7 +68,7 @@ contract("MultiSig", (accounts) => {
 
     await multiSig.addKeyholder(keyholderToBeAdded1);
 
-    multiSig.isKeyholder(keyholderToBeAdded1).should.become(true);
+    await multiSig.isKeyholder(keyholderToBeAdded1).should.become(true);
   });
 
   it("should allow increasing the keyholder limit", async () => {
@@ -91,7 +91,7 @@ contract("MultiSig", (accounts) => {
   it("should allow adding keyholders after the limit has increased", async () => {
     const multiSig = await MultiSig.deployed();
 
-    multiSig.isKeyholder(keyholderToBeAdded2).should.become(false);
+    await multiSig.isKeyholder(keyholderToBeAdded2).should.become(false);
 
     await multiSig.voteToAddKeyholder(keyholderToBeAdded2, {
       from: keyholder1,
@@ -105,10 +105,10 @@ contract("MultiSig", (accounts) => {
 
     await multiSig.addKeyholder(keyholderToBeAdded2);
 
-    multiSig.isKeyholder(keyholderToBeAdded2).should.become(true);
+    await multiSig.isKeyholder(keyholderToBeAdded2).should.become(true);
 
-    multiSig.getKeyholders().should.eventually.have.lengthOf(4);
-    multiSig
+    await multiSig.getKeyholders().should.eventually.have.lengthOf(4);
+    await multiSig
       .getKeyholders()
       .should.eventually.include.members([
         keyholder1,
@@ -124,11 +124,11 @@ contract("MultiSig", (accounts) => {
     const testString = "hello world";
 
     // Have to call methods directly because they're overloaded
-    multiSig.methods["allKeyholdersAttest(uint8,string)"](
+    await multiSig.methods["allKeyholdersAttest(uint8,string)"](
       ATTEST_TO_DATA_ACTION_CODE,
       testString
     ).should.become(false);
-    multiSig.methods["allButOneKeyholdersAttest(uint8,string)"](
+    await multiSig.methods["allButOneKeyholdersAttest(uint8,string)"](
       ATTEST_TO_DATA_ACTION_CODE,
       testString
     ).should.become(false);
@@ -137,18 +137,18 @@ contract("MultiSig", (accounts) => {
     await multiSig.attestToData(testString, { from: keyholder2 });
     await multiSig.attestToData(testString, { from: keyholderToBeAdded1 });
 
-    multiSig.methods["allKeyholdersAttest(uint8,string)"](
+    await multiSig.methods["allKeyholdersAttest(uint8,string)"](
       ATTEST_TO_DATA_ACTION_CODE,
       testString
     ).should.become(false);
-    multiSig.methods["allButOneKeyholdersAttest(uint8,string)"](
+    await multiSig.methods["allButOneKeyholdersAttest(uint8,string)"](
       ATTEST_TO_DATA_ACTION_CODE,
       testString
     ).should.become(true);
 
     await multiSig.attestToData(testString, { from: keyholderToBeAdded2 });
 
-    multiSig.methods["allKeyholdersAttest(uint8,string)"](
+    await multiSig.methods["allKeyholdersAttest(uint8,string)"](
       ATTEST_TO_DATA_ACTION_CODE,
       testString
     ).should.become(true);
