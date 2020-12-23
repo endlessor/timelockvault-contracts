@@ -5,6 +5,9 @@ chai.use(chaiAsPromised);
 
 const MultiSig = artifacts.require("MultiSig");
 
+const VOTE_TO_REMOVE_KEYHOLDER_ACTION_CODE = 0;
+const VOTE_TO_ADD_KEYHOLDER_ACTION_CODE = 1;
+const VOTE_TO_CHANGE_KEYHOLDER_LIMIT_ACTION_CODE = 2;
 const ATTEST_TO_DATA_ACTION_CODE = 4;
 
 contract("MultiSig", (accounts) => {
@@ -50,7 +53,7 @@ contract("MultiSig", (accounts) => {
     const multiSig = await MultiSig.deployed();
 
     multiSig
-      .addKeyholder(keyholder1, { from: deployer })
+      .addKeyholder(deployer, { from: deployer })
       .should.be.rejectedWith("All keyholders must attest first");
   });
 
@@ -153,5 +156,68 @@ contract("MultiSig", (accounts) => {
       ATTEST_TO_DATA_ACTION_CODE,
       testString
     ).should.become(true);
+  });
+
+  it("allows retracting attestations", async () => {
+    const multiSig = await MultiSig.new(1, { from: deployer });
+
+    await multiSig.addKeyholder(keyholder1, { from: deployer });
+
+    const testString = "hello world";
+
+    // Atest to testString
+    await multiSig.attestToData(testString, { from: keyholder1 });
+
+    // Retract attestation for the testString and check that allKeyholdersAttest is now false
+    await multiSig.retractAttestationForData(testString, { from: keyholder1 });
+    await multiSig.methods["allKeyholdersAttest(uint8,string)"](
+      ATTEST_TO_DATA_ACTION_CODE,
+      testString
+    ).should.become(false);
+
+    // Vote to remove keyholder1
+    await multiSig.voteToRemoveKeyholder(keyholder1, {
+      from: keyholder1,
+    });
+
+    // Retract vote and check that allKeyholdersAttest is now false
+    await multiSig.retractVoteToRemoveKeyholder(keyholder1, {
+      from: keyholder1,
+    });
+    await multiSig.methods["allKeyholdersAttest(uint8,address)"](
+      VOTE_TO_REMOVE_KEYHOLDER_ACTION_CODE,
+      keyholder1
+    ).should.become(false);
+
+    // Vote to add keyholder1
+    await multiSig.voteToAddKeyholder(keyholder1, {
+      from: keyholder1,
+    });
+
+    // Retract vote and check that allKeyholdersAttest is now false
+    await multiSig.retractVoteToAddKeyholder(keyholder1, {
+      from: keyholder1,
+    });
+    await multiSig.methods["allKeyholdersAttest(uint8,address)"](
+      VOTE_TO_ADD_KEYHOLDER_ACTION_CODE,
+      keyholder1
+    ).should.become(false);
+
+    const newLimitTestAmount = 2;
+
+    // Vote to change keyholderLimit
+    await multiSig.voteToChangeKeyholderLimit(newLimitTestAmount, {
+      from: keyholder1,
+    });
+
+    // Retract vote and check that allKeyholdersAttest is now false
+    await multiSig.retractVoteToChangeKeyholderLimit(newLimitTestAmount, {
+      from: keyholder1,
+    });
+
+    await multiSig.methods["allKeyholdersAttest(uint8,uint256)"](
+      VOTE_TO_CHANGE_KEYHOLDER_LIMIT_ACTION_CODE,
+      newLimitTestAmount
+    ).should.become(false);
   });
 });

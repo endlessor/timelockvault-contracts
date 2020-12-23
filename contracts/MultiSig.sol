@@ -203,6 +203,7 @@ contract MultiSig is Ownable {
             keyholderLimit > keyholders.length,
             "A keyholder slot must be open!"
         );
+        require(!isKeyholder(person), "This person is already a keyholder!");
 
         // If owner has added all original keyholders already:
         if (attestations[owner()][ActionCode.LOCK_OWNER_OUT][""]) {
@@ -210,6 +211,7 @@ contract MultiSig is Ownable {
                 allKeyholdersAttest(ActionCode.VOTE_TO_ADD_KEYHOLDER, person),
                 "All keyholders must attest first."
             );
+
             keyholders.push(person);
             voidAttestations(ActionCode.VOTE_TO_ADD_KEYHOLDER, person);
         } else {
@@ -241,6 +243,7 @@ contract MultiSig is Ownable {
             isKeyholder(keyholder),
             "The keyholder you wish to remove is not a keyholder."
         );
+
         address[] memory newKeyholders = new address[](keyholders.length - 1);
 
         bool foundOldKeyholder = false;
@@ -297,15 +300,15 @@ contract MultiSig is Ownable {
     }
 
     /// @notice Adds an attestation log associated with the sender's address with the `keyholder` and action code VOTE_TO_REMOVE_KEYHOLDER.
-    /// @param keyholder The address of the keyholder calling will vote to remove.
+    /// @param keyholder The address the caller is voting to remove as a keyholder.
     function voteToRemoveKeyholder(address keyholder) external onlyKeyholder {
         attestations[msg.sender][ActionCode.VOTE_TO_REMOVE_KEYHOLDER][
             packAndHash(keyholder)
         ] = true;
     }
 
-    /// @notice Adds an attestation log associated with the sender's address with the `keyholder` and action code VOTE_TO_ADD_KEYHOLDER.
-    /// @param person The address of the person calling will vote to add as a keyholder.
+    /// @notice Adds an attestation log associated with the sender's address with the `person` and action code VOTE_TO_ADD_KEYHOLDER.
+    /// @param person The address the caller is voting to add as a keyholder.
     function voteToAddKeyholder(address person) external onlyKeyholder {
         attestations[msg.sender][ActionCode.VOTE_TO_ADD_KEYHOLDER][
             packAndHash(person)
@@ -318,5 +321,46 @@ contract MultiSig is Ownable {
         attestations[msg.sender][ActionCode.VOTE_TO_CHANGE_KEYHOLDER_LIMIT][
             packAndHash(limit)
         ] = true;
+    }
+
+    /// @notice Retracts an attestation log associated with the sender's address with the `data` and action code ATTEST_TO_DATA.
+    /// @param data The string to be hashed, found in the `attestations` map, and removed.
+    function retractAttestationForData(string memory data)
+        external
+        onlyKeyholder
+    {
+        delete attestations[msg.sender][ActionCode.ATTEST_TO_DATA][
+            packAndHash(data)
+        ];
+    }
+
+    /// @notice Retracts an attestation log associated with the sender's address with the `keyholder` and action code VOTE_TO_REMOVE_KEYHOLDER.
+    /// @param keyholder The address the person calling was voting to remove as a keyholder and wants retracted.
+    function retractVoteToRemoveKeyholder(address keyholder)
+        external
+        onlyKeyholder
+    {
+        delete attestations[msg.sender][ActionCode.VOTE_TO_REMOVE_KEYHOLDER][
+            packAndHash(keyholder)
+        ];
+    }
+
+    /// @notice Retracts an attestation log associated with the sender's address with the `keyholder` and action code VOTE_TO_ADD_KEYHOLDER.
+    /// @param person The address the person calling was voting to add as a keyholder and wants retracted.
+    function retractVoteToAddKeyholder(address person) external onlyKeyholder {
+        delete attestations[msg.sender][ActionCode.VOTE_TO_ADD_KEYHOLDER][
+            packAndHash(person)
+        ];
+    }
+
+    /// @notice Retracts an attestation log associated with the sender's address with the `limit` and action code VOTE_TO_CHANGE_KEYHOLDER_LIMIT.
+    /// @param limit The amount the caller was voting to change the limit to and wants retracted.
+    function retractVoteToChangeKeyholderLimit(uint256 limit)
+        external
+        onlyKeyholder
+    {
+        delete attestations[msg.sender][
+            ActionCode.VOTE_TO_CHANGE_KEYHOLDER_LIMIT
+        ][packAndHash(limit)];
     }
 }
