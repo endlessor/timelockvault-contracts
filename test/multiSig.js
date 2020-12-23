@@ -1,7 +1,9 @@
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
-chai.should();
+const chaiBnEqual = require("chai-bn-equal");
+chai.use(chaiBnEqual);
 chai.use(chaiAsPromised);
+chai.should();
 
 const MultiSig = artifacts.require("MultiSig");
 
@@ -77,10 +79,9 @@ contract("MultiSig", (accounts) => {
   it("should allow increasing the keyholder limit", async () => {
     const multiSig = await MultiSig.deployed();
 
-    // Returns a BN so we must convert to string first.
-    (await multiSig.keyholderLimit())
-      .toString()
-      .should.equal(process.env.KEYHOLDER_AMOUNT);
+    multiSig
+      .keyholderLimit()
+      .should.eventually.bnEqual(process.env.KEYHOLDER_AMOUNT);
 
     await multiSig.voteToChangeKeyholderLimit(4, { from: keyholder1 });
     await multiSig.voteToChangeKeyholderLimit(4, { from: keyholder2 });
@@ -88,8 +89,7 @@ contract("MultiSig", (accounts) => {
 
     await multiSig.changeKeyholderLimit(4);
 
-    // Returns a BN so we must convert to string first.
-    (await multiSig.keyholderLimit()).toString().should.equal("4");
+    multiSig.keyholderLimit().should.eventually.bnEqual(4);
   });
 
   it("should allow adding keyholders after the limit has increased", async () => {

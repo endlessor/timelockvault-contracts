@@ -17,6 +17,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
+    "chai-bn-equal": "^1.0.0",
     "concurrently": "^5.3.0",
     "dotenv": "^8.2.0",
     "ganache-cli": "^6.12.1",

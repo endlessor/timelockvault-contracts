@@ -1,9 +1,3 @@
-const { assert } = require("chai");
-const chai = require("chai");
-const chaiAsPromised = require("chai-as-promised");
-chai.should();
-chai.use(chaiAsPromised);
-
 const TimeLockupMultiSigVault = artifacts.require("TimeLockupMultiSigVault");
 const timeMachine = require("ganache-time-traveler");
 
@@ -23,9 +17,9 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     const timeKey = (await web3.eth.getBlock(receipt.blockNumber)).timestamp;
 
     // Check that the timeKeyBalance is the same as the deposit amount
-    (await timeLockupMultiSigVault.getBalanceForTimeKey(timeKey))
-      .toString()
-      .should.equal(depositAmount);
+    await timeLockupMultiSigVault
+      .getBalanceForTimeKey(timeKey)
+      .should.eventually.bnEqual(depositAmount);
 
     // Gets the first key in the array of timeKeys (the first deposit timeKey) and checks it is equal to the timestamp
     (await timeLockupMultiSigVault.getTimeKeys())[0]
@@ -33,14 +27,14 @@ contract("TimeLockupMultiSigVault", (accounts) => {
       .should.equal(timeKey.toString());
 
     // Checks the balance of the timeKey is the same as the amount of ETH deposited.
-    (await timeLockupMultiSigVault.getBalanceForTimeKey(timeKey))
-      .toString()
-      .should.equal(depositAmount);
+    await timeLockupMultiSigVault
+      .getBalanceForTimeKey(timeKey)
+      .should.eventually.bnEqual(depositAmount);
 
     // Check the deposited amount is equal to 1 eth
-    (await timeLockupMultiSigVault.getDepositedAmount())
-      .toString()
-      .should.equal(depositAmount);
+    await timeLockupMultiSigVault
+      .getDepositedAmount()
+      .should.eventually.bnEqual(depositAmount);
   });
 
   it("enforces the timelock", async () => {
@@ -57,14 +51,14 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     )[0];
 
     // Check the amount of seconds left is equal to half of the timelock.
-    (await timeLockupMultiSigVault.getSecondsLeftOnTimeKey(firstDepositTimeKey))
-      .toString()
-      .should.equal(halfOfTimelock.toString());
+    await timeLockupMultiSigVault
+      .getSecondsLeftOnTimeKey(firstDepositTimeKey)
+      .should.eventually.bnEqual(halfOfTimelock.toString());
 
     // Check the withdrawable amount is 0
-    (await timeLockupMultiSigVault.getWithdrawableAmount())
-      .toString()
-      .should.equal("0");
+    await timeLockupMultiSigVault
+      .getWithdrawableAmount()
+      .should.eventually.bnEqual(0);
   });
 
   it("suports withdrawing after timelock is over", async () => {
@@ -76,21 +70,21 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     );
 
     // Check the withdrawable amount is the depositAmount
-    (await timeLockupMultiSigVault.getWithdrawableAmount())
-      .toString()
-      .should.equal(depositAmount);
+    await timeLockupMultiSigVault
+      .getWithdrawableAmount()
+      .should.eventually.bnEqual(depositAmount);
 
     await timeLockupMultiSigVault.withdraw({ from: owner });
 
     // Check the deposited amount is 0
-    (await timeLockupMultiSigVault.getDepositedAmount())
-      .toString()
-      .should.equal("0");
+    await timeLockupMultiSigVault
+      .getDepositedAmount()
+      .should.eventually.bnEqual(0);
 
     // Check the withdrawable amount is 0
-    (await timeLockupMultiSigVault.getWithdrawableAmount())
-      .toString()
-      .should.equal("0");
+    await timeLockupMultiSigVault
+      .getWithdrawableAmount()
+      .should.eventually.bnEqual(0);
   });
 
   it("it allows redepositing", async () => {
@@ -118,16 +112,16 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     });
 
     // Check the deposited amount is 3x the depositAmount
-    (await timeLockupMultiSigVault.getDepositedAmount())
-      .toString()
-      .should.equal(
+    await timeLockupMultiSigVault
+      .getDepositedAmount()
+      .should.eventually.bnEqual(
         web3.utils.toBN(depositAmount).mul(web3.utils.toBN(3)).toString()
       );
 
     // Check the withdrawable amount is 0
-    (await timeLockupMultiSigVault.getWithdrawableAmount())
-      .toString()
-      .should.equal("0");
+    await timeLockupMultiSigVault
+      .getWithdrawableAmount()
+      .should.eventually.bnEqual(0);
   });
 
   it("allows adding keyholders", async () => {
@@ -163,9 +157,9 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     );
 
     // Since we withdrew half of the deposited amount, the amount left should be the same as the bypassAmount (as it's the other half left)
-    (await timeLockupMultiSigVault.getDepositedAmount())
-      .toString()
-      .should.equal(bypassAmount);
+    await timeLockupMultiSigVault
+      .getDepositedAmount()
+      .should.eventually.bnEqual(bypassAmount);
   });
 
   it("allows a bypass for the max amount", async () => {
@@ -186,8 +180,8 @@ contract("TimeLockupMultiSigVault", (accounts) => {
     });
 
     // We should have emptied the whole contract now.
-    (await timeLockupMultiSigVault.getDepositedAmount())
-      .toString()
-      .should.equal("0");
+    await timeLockupMultiSigVault
+      .getDepositedAmount()
+      .should.eventually.bnEqual(0);
   });
 });
