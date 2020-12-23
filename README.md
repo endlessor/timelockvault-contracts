@@ -22,8 +22,6 @@ Your contract will now start deploying! Get the contract address by copying it f
 
 - Call the contract's `addKeyholder` method with the address of each person you wish to add as keyholder until you've reached the `KEYHOLDER_LIMIT` you set.
 
-## TODO: More info on calling methods
-
 ### You should now be able to send ether to your contract and it will be locked up for the `TIMELOCK_SECONDS` amount you set! 
 
 - If you want to check to see how much you can withdraw at a certian time call `getWithdrawableAmount` which will return the max amount you can withdraw at the current time (factoring in the timelock).
