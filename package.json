@@ -5,17 +5,20 @@
   "main": "truffle-config.js",
   "scripts": {
     "compile": "truffle compile --all",
-    "migrate": "truffle migrate",
-    "test": "truffle test",
+    "test": "truffle test --network development",
     "test-verbose": "npm run test -- --show-events",
     "ganache": "ganache-cli",
     "dry-run": "concurrently 'npm:ganache > /dev/null' 'npm:test' --kill-others --success first",
-    "coverage": "truffle run coverage && npm run open-coverage-report",
-    "open-coverage-report": "if [ $(uname) = 'Darwin' ]; then open ./coverage/index.html; fi"
+    "coverage": "truffle run coverage --network development && npm run open-coverage-report",
+    "open-coverage-report": "if [ $(uname) = 'Darwin' ]; then open ./coverage/index.html; fi",
+    "deploy-kovan": "truffle run migrate --network kovan && truffle run verify --network kovan",
+    "deploy-ropsten": "truffle run migrate --network ropsten && truffle run verify --network ropsten",
+    "deploy-mainnet": "truffle run migrate --network mainnet && truffle run verify --network mainnet"
   },
   "author": "t11s",
   "license": "AGPL-3.0-only",
   "devDependencies": {
+    "@truffle/hdwallet-provider": "^1.2.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-bn-equal": "^1.0.0",
@@ -24,7 +27,8 @@
     "ganache-cli": "^6.12.1",
     "ganache-time-traveler": "^1.0.15",
     "solidity-coverage": "^0.7.13",
-    "truffle": "^5.1.58"
+    "truffle": "^5.1.58",
+    "truffle-plugin-verify": "^0.5.4"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^3.3.0"

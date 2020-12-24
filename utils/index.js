@@ -7,4 +7,8 @@ module.exports = {
   VOTE_TO_ADD_KEYHOLDER_ACTION_CODE: 1,
   VOTE_TO_CHANGE_KEYHOLDER_LIMIT_ACTION_CODE: 2,
   ATTEST_TO_DATA_ACTION_CODE: 4,
+
+  gweiToWei: (gwei) => {
+    return 1e9 * gwei;
+  },
 };

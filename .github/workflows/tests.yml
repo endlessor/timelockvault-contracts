@@ -12,9 +12,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Rename .env.example to .env
-        run: mv .env.example .env
-
       - name: Run unit tests with coverage
         run: npm run coverage
 
