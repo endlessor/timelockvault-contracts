@@ -24,7 +24,7 @@ Your contract will now start deploying! Get the contract address by copying it f
 
 - Once the transaction has confirmed, it's time to add your keyholders.
 
-- Go to [etherscan.io/address/YOUR_DELPOYED_CONTRACT_ADDRESS]()
+- Go to [etherscan.io/address/YOUR_DELPOYED_CONTRACT_ADDRESS](/#)
 
 ![Etherscan](https://user-images.githubusercontent.com/26209401/103075910-6e62d280-4581-11eb-80b4-e14ff981d4a2.png)
 
