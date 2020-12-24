@@ -16,7 +16,7 @@ Lock up your ETH for a set duration to force you into saving, **while allowing y
 
 ## Deployment Guide:
 
-- Run `npm run deploy-mainnet` to deploy to the mainnet & verify the contract on Etherscan automatically. *(Change `mainnet` to `kovan` or `ropsten` to deploy to those testnets respectively)*
+- Run `npm run deploy-mainnet` to deploy to the mainnet & verify the contract on Etherscan automatically *(Change `mainnet` to `kovan` or `ropsten` to deploy to those testnets respectively).*
 
 Your contract will now start deploying! Get the contract address by copying it from the command output from truffle:
 
