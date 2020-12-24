@@ -11,9 +11,9 @@
     "dry-run": "concurrently 'npm:ganache > /dev/null' 'npm:test' --kill-others --success first",
     "coverage": "truffle run coverage --network development && npm run open-coverage-report",
     "open-coverage-report": "if [ $(uname) = 'Darwin' ]; then open ./coverage/index.html; fi",
-    "deploy-kovan": "truffle run migrate --network kovan && truffle run verify --network kovan",
-    "deploy-ropsten": "truffle run migrate --network ropsten && truffle run verify --network ropsten",
-    "deploy-mainnet": "truffle run migrate --network mainnet && truffle run verify --network mainnet"
+    "deploy-kovan": "truffle migrate --network kovan && truffle run verify --network kovan",
+    "deploy-ropsten": "truffle migrate --network ropsten && truffle run verify --network ropsten",
+    "deploy-mainnet": "truffle migrate --network mainnet && truffle run verify --network mainnet"
   },
   "author": "t11s",
   "license": "AGPL-3.0-only",
