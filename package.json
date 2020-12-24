@@ -1,7 +1,7 @@
 {
   "name": "timelockvault-contracts",
   "version": "1.0.0",
-  "description": "Lock up your ETH for a set duration.",
+  "description": "Lock up your ETH for a set duration (with a bypass option for emergencies!)",
   "main": "truffle-config.js",
   "scripts": {
     "compile": "truffle compile --all",
