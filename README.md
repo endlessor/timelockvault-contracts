@@ -2,6 +2,8 @@
 
 Lock up your ETH for a set duration to force you into saving, **while allowing you to bypass the timelock if a group of your trusted friends (keyholders) vote to permit you to bypass in the case of an emergency or unexpected event.**
 
+*The docs below will teach you how to configure and deploy your own instance of the `TimeLockMultiSigVault` contract.*
+
 ## Configuration Guide:
 
 - Rename `.env.example` to `.env`
@@ -14,13 +16,11 @@ Lock up your ETH for a set duration to force you into saving, **while allowing y
 
 ## Deployment Guide:
 
-These steps will help you to deploy your very own `TimeLockMultiSigVault` contract!
-
 - Run `npm run deploy-mainnet` to deploy to the mainnet & verify the contract on Etherscan automatically. *(Change `mainnet` to `kovan` or `ropsten` to deploy to those testnets respectively)*
 
 Your contract will now start deploying! Get the contract address by copying it from the command output from truffle:
 
-![output](https://www.trufflesuite.com/img/blog/an-easier-way-to-deploy-your-smart-contracts/truffle.png)
+![Output](https://user-images.githubusercontent.com/26209401/103076424-8e46c600-4582-11eb-9180-6f73993a0e58.png)
 
 - Once the transaction has confirmed, it's time to add your keyholders.
 
